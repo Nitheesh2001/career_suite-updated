@@ -1,112 +1,75 @@
 import streamlit as st
+import json
+import os
+from dotenv import load_dotenv
+# from auth import authenticate_user, register_user
 from utils.auth import authenticate_user, register_user
 
-def main():
-    # Set page configuration with favicon
-    st.set_page_config(page_title="Career Suite", page_icon="https://uxwing.com/wp-content/themes/uxwing/download/business-professional-services/briefcase-bag-color-icon.png")  # Set the favicon here
 
-    # Initialize session state for login status and page redirection
-    if "logged_in" not in st.session_state:
-        st.session_state["logged_in"] = False
-    if "page" not in st.session_state:
-        st.session_state["page"] = "login"
+# Load environment variables
+load_dotenv()
 
-    # Display the appropriate page based on the session state
-    if st.session_state["logged_in"]:
-        if st.session_state["page"] == "home":
-            show_home_page()
-        else:
-            st.session_state["page"] = "home"
-            st.rerun()  # Refresh the page to reflect the new state
-    else:
-        if st.session_state["page"] == "login":
-            show_auth_page()
-        else:
-            st.session_state["page"] = "login"
-            st.rerun()  # Refresh the page to reflect the new state
+st.set_page_config(page_title="Career Suite", page_icon="https://uxwing.com/wp-content/themes/uxwing/download/business-professional-services/briefcase-bag-color-icon.png")  # Set the favicon here
 
-def show_auth_page():
-    st.title("Login or Signup")
-    auth_option = st.selectbox("Choose an option:", ["Login", "Signup"])
+# Read user credentials from JSON file
+with open('users.json', 'r') as f:
+    users = json.load(f)
 
-    if auth_option == "Login":
-        show_login_page()
-    elif auth_option == "Signup":
-        show_signup_page()
-
-def show_login_page():
-    st.subheader("Login")
+def show_login_page(users):
+    st.title(" Welcome To Career Suite!")
+    st.title("Login")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        if authenticate_user(username, password):
+        if authenticate_user(username, password, users):
             st.session_state["logged_in"] = True
             st.session_state["page"] = "home"
-            st.rerun()  # Refresh the page to reflect the new state
+            # st.experimental_rerun()
+            st.rerun()
         else:
-            st.error("Invalid credentials. Please try again.")
+            st.error("Invalid username or password")
 
-def show_signup_page():
-    st.subheader("Signup")
+    if st.button("Sign Up"):
+        st.session_state["page"] = "signup"
+        # st.experimental_rerun()
+        st.rerun()
+
+def show_signup_page(users):
+    st.title(" welcome to career suite!")
+    st.title("Signup")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     confirm_password = st.text_input("Confirm Password", type="password")
 
     if st.button("Signup"):
         if password == confirm_password:
-            if register_user(username, password):
+            if register_user(username, password, users):
                 st.success("Signup successful! Please log in.")
                 st.session_state["page"] = "login"
-                st.rerun()  # Refresh the page to reflect the new state
+                # st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Signup failed. Username might already exist.")
         else:
             st.error("Passwords do not match.")
 
-def show_home_page():
-    st.title("Welcome to Career suits!")
-    
-    # Sidebar with logout button
-    with st.sidebar:
-        if st.button("Logout"):
-            st.session_state["logged_in"] = False
-            st.session_state["page"] = "login"
-            st.rerun()  # Refresh the page to reflect the new state
+    if st.button("Back to Login"):
+        st.session_state["page"] = "login"
+        # st.experimental_rerun()
+        st.rerun()
+
+def show_main_content():
+    st.title("Welcome to Career Suite!")
+    st.write("Welcome to the main content page.")
+
+
 
     # Main content area
-    st.write("Welcome! You are now logged in and can access the following mini projects:")
+    st.write("You’re officially logged in and ready to explore! On the left side, you’ll find a sidebar with all the tools and features at your disposal. Dive into each section to enhance your career journey with our comprehensive suite of projects:")
 
     # Project summaries
     st.subheader("Project Summaries")
-
-    
-    # st.write("**1. Career Chatbot:**")
-    # st.write("A virtual assistant providing personalized career advice and guidance to help users navigate their professional journey.")
-
-    # st.write("**2. Cover Letter Generator:**")
-    # st.write("Generates tailored cover letters to enhance job applications, making it easier to create impactful introductions.")
-
-    # st.write("**3. Interview Preparation:**")
-    # st.write("Offers resources and practice questions to help users prepare effectively for interviews and boost their confidence.")
-
-    # st.write("**4. Mock Interview:**")
-    # st.write("Simulates real interview scenarios and provides feedback, allowing users to practice and refine their interview skills.")
-
-    # st.write("**5. PDF Genius:**")
-    # st.write("Interacts with PDFs using LLMs to enable content extraction and summarization, streamlining document management.")
-
-    # st.write("**6. Resume Builder:**")
-    # st.write("Facilitates the creation of professional and polished resumes, helping users highlight their skills and experience effectively.")
-
-    # st.write("**7. Skill Gap Analyzer:**")
-    # st.write("Identifies discrepancies between current and required skills for specific job roles, and suggests resources to bridge those gaps.")
-
-    # st.write("**8. Smart ATS:**")
-    # st.write("Optimizes resumes using AI-driven insights to improve visibility and increase chances of passing Applicant Tracking Systems.")
-
-    # st.write("**9. Soft Skills Assessment:**")
-    # st.write("Evaluates and provides feedback on essential soft skills, helping users develop interpersonal effectiveness for career advancement.")
 
     col1, col2, col3 = st.columns(3)
 
@@ -156,6 +119,32 @@ def show_home_page():
         st.write("Evaluates and provides feedback on essential soft skills, helping users develop interpersonal effectiveness for career advancement.")
 
 
+
+
+
+
+def main():
+    if "logged_in" not in st.session_state:
+        st.session_state["logged_in"] = False
+    if "page" not in st.session_state:
+        st.session_state["page"] = "login"
+
+    if st.session_state["logged_in"]:
+        if st.session_state["page"] == "home":
+            show_main_content()
+        else:
+            st.session_state["page"] = "home"
+            # st.experimental_rerun()
+            st.rerun()
+    else:
+        if st.session_state["page"] == "login":
+            show_login_page(users)
+        elif st.session_state["page"] == "signup":
+            show_signup_page(users)
+        else:
+            st.session_state["page"] = "login"
+            # st.experimental_rerun()
+            st.rerun()
 
 if __name__ == "__main__":
     main()
